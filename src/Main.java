@@ -17,18 +17,22 @@ import com.atilika.kuromoji.unidic.kanaaccent.Tokenizer;
 import com.atilika.kuromoji.util.StringUtils;
 
 import java.io.*;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main
 {
+    private static boolean filter_punctuation_enabled = true;
+    private static boolean filter_dictionary_enabled = true;
+    private static boolean filter_enabled = true;
+    private static boolean blacklist_enabled = true;
+    private static boolean special_blacklist_enabled = false;
+    private static boolean skip_furigana_formatting = false;
+
     // to force utf-8 output on windows
     private static PrintStream out;
 
-    // disable to make "academic" frequency lists (keep enabled for flashcards)
-    private static boolean blacklist_enabled = true;
     private static HashSet<String> blacklist = new HashSet<>();
 
     private static void init_blacklist()
@@ -142,6 +146,9 @@ public class Main
         blacklist.add("七つ");
         blacklist.add("八つ");
         blacklist.add("九つ");
+
+        if(!special_blacklist_enabled) return;
+
     // VN-specific names
         // ingarock
         blacklist.add("ギー");
@@ -154,7 +161,7 @@ public class Main
         blacklist.add("キャスター");
         blacklist.add("ライダー");
         blacklist.add("ランサー");
-
+        blacklist.add("アサシン");
         // hoshimemo
         blacklist.add("ヒバリ");
     // jargon
@@ -162,12 +169,25 @@ public class Main
         blacklist.add("聖杯");
         blacklist.add("機関");
         blacklist.add("望遠");
+        blacklist.add("クリッター");
+        blacklist.add("オルゴール");
+        blacklist.add("マグ");
+        blacklist.add("スワスチカ");
+        blacklist.add("プラネタリウム");
+        blacklist.add("アルパカ");
+        blacklist.add("メニュー");
+        blacklist.add("ミスター");
     // parsing mysteries
         blacklist.add("チャー");
+        blacklist.add("カー");
+        blacklist.add("クル");
+        blacklist.add("クル");
         blacklist.add("師");
         blacklist.add("洋");
         blacklist.add("師");
         blacklist.add("崎");
+        blacklist.add("ベイ");
+        blacklist.add("トリフ");
     // special particles
         blacklist.add("お");
         blacklist.add("ご");
@@ -178,8 +198,7 @@ public class Main
         blacklist.add("くん");
         blacklist.add("そっ");
         blacklist.add("ふっ");
-        blacklist.add("ぽかっ  ");
-
+        blacklist.add("ぽかっ");
     }
     private static boolean blacklisted(String test)
     {
@@ -194,6 +213,20 @@ public class Main
             try
             {
                 int c = f.read();
+                if(skip_furigana_formatting && c == 0x300A) // 《
+                {
+                    while(true)
+                    {
+                        c = f.read();
+                        if(c < 0) break;
+                        if(c == 0x300B) // 》
+                        {
+                            c = f.read();
+                            break;
+                        }
+                    }
+                }
+                if(skip_furigana_formatting && (c == 0x3008 || c == 0x3009 )) continue; //〈〉
                 if(c < 0) break;
                 line += (char)c;
                 didanything = true;
@@ -214,6 +247,34 @@ public class Main
     {
         out = new PrintStream(System.out, true, "UTF-8");
 
+        ArrayDeque<String> arguments = new ArrayDeque<>();
+        arguments.addAll(Arrays.asList(args));
+        if(arguments.size() == 0)
+        {
+            out.println("Usage: java -jar analyzer.jar <corpus.txt> (-[dswlpn] )*");
+            out.println("\tcorpus.txt: must be in utf-8");
+            out.println("\t-d: disable number-word blacklist (1, １, 一, 一月, 月曜, etc)");
+            out.println("\t-s: strip 〈〉 (but not their contents) and enable 《》 furigana culling (incl. contents) (operates at the code unit level, before parsing)");
+            out.println("\t-w: disable 'only in dictionary' filter");
+            out.println("\t-l: disable part-of-speech filter");
+            out.println("\t-p: disable punctuation filter");
+            out.println("\t-n: enable special blacklist (names and jargon from certain VNs)");
+            out.println("\tOptions must be stated separately (-p -d), not bundled (-pd)");
+            return;
+        }
+        String filename = arguments.removeFirst();
+
+        while(!(arguments.size() == 0))
+        {
+            String argument = arguments.removeFirst();
+            if(argument.equals("-p")) filter_punctuation_enabled = false;
+            if(argument.equals("-w")) filter_dictionary_enabled = false;
+            if(argument.equals("-l")) filter_enabled = false;
+            if(argument.equals("-d")) blacklist_enabled = false;
+            if(argument.equals("-n")) special_blacklist_enabled = true;
+            if(argument.equals("-s")) skip_furigana_formatting = true;
+        }
+
         Pattern p_re = Pattern.compile("^[\\p{Punct} 　─]*$", Pattern.UNICODE_CHARACTER_CLASS);
         Matcher p_m = p_re.matcher("");
 
@@ -225,16 +286,11 @@ public class Main
         InputStreamReader in;
         try
         {
-            in = new InputStreamReader(new FileInputStream(args[0]), "UTF-8");
+            in = new InputStreamReader(new FileInputStream(filename), "UTF-8");
         }
         catch (FileNotFoundException e)
         {
             out.println("File not found.");
-            return;
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
-            out.println("No file given");
             return;
         }
 
@@ -247,25 +303,30 @@ public class Main
             {
                 // skip undesired terms
 
-                if(!token.isKnown()) continue; // not from the dictionary
-                if(p_m.reset(token.getSurface()).find()) continue; // punctuation
+                if(filter_dictionary_enabled && !token.isKnown()) continue; // not from the dictionary
+                if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) continue; // punctuation
 
                 // not all of these work on the unidic tags, but some of them do, and the broken ones will work for the ipadic tags if you end up using ipadic for some reason
-                if(token.getPartOfSpeechLevel1().contains("助詞")) continue; // particles
-                if(token.getPartOfSpeechLevel1().contains("助動詞")) continue; // strict auxiliary verbs (ます, だ, etc)
-                if(token.getPartOfSpeechLevel1().contains("感動詞")) continue; // interjection
-                if(token.getPartOfSpeechLevel1().contains("接続詞")) continue; // conjunctions
-                if(token.getPartOfSpeechLevel2().contains("固有名詞")) continue; // proper nouns
-                if(token.getPartOfSpeechLevel1().contains("フィラー")) continue; // filler ejections
-                if(token.getPartOfSpeechLevel1().contains("その他")) continue; // "other"
-                if(token.getPartOfSpeechLevel1().contains("記号")) continue; // symbols
-                if(token.getPartOfSpeechLevel1().contains("記号")) continue; // symbols
 
                 String parts = token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3();
-                if(parts.contains("形容詞	非自立")) continue; // dependent i-adjectives (いい from ていい etc)
-                if(parts.contains("形容詞	接尾")) continue; // abnormal adjectives (ぽい etc)
-                if(parts.contains("動詞	非自立")) continue; // dependent verbs (やる from てやる etc)
-                if(parts.contains("動詞	接尾")) continue; // abnormal verbs (られる etc)
+
+                if(filter_enabled)
+                {
+                    if(token.getPartOfSpeechLevel1().contains("助詞")) continue; // particles
+                    if(token.getPartOfSpeechLevel1().contains("助動詞")) continue; // strict auxiliary verbs (ます, だ, etc)
+                    if(token.getPartOfSpeechLevel1().contains("感動詞")) continue; // interjection
+                    if(token.getPartOfSpeechLevel1().contains("接続詞")) continue; // conjunctions
+                    if(token.getPartOfSpeechLevel2().contains("固有名詞")) continue; // proper nouns
+                    if(token.getPartOfSpeechLevel1().contains("フィラー")) continue; // filler ejections
+                    if(token.getPartOfSpeechLevel1().contains("その他")) continue; // "other"
+                    if(token.getPartOfSpeechLevel1().contains("記号")) continue; // symbols
+                    if(token.getPartOfSpeechLevel1().contains("記号")) continue; // symbols
+
+                    if(parts.contains("形容詞	非自立")) continue; // dependent i-adjectives (いい from ていい etc)
+                    if(parts.contains("形容詞	接尾")) continue; // abnormal adjectives (ぽい etc)
+                    if(parts.contains("動詞	非自立")) continue; // dependent verbs (やる from てやる etc)
+                    if(parts.contains("動詞	接尾")) continue; // abnormal verbs (られる etc)
+                }
 
                 if(blacklisted(token.getWrittenBaseForm())) continue;
 
@@ -278,7 +339,7 @@ public class Main
 
                 // record event
 
-                String[] temp = {parts, token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getConjugationType(), token.getLanguageType()};
+                String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType()};
                 String identity = StringUtils.join(temp,"\t");
                 data.addEvent(identity);
             }
