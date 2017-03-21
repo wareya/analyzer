@@ -259,7 +259,9 @@ public class Main
             out.println("\t-l: disable part-of-speech filter");
             out.println("\t-p: disable punctuation filter");
             out.println("\t-n: enable special blacklist (names and jargon from certain VNs)");
-            out.println("\tOptions must be stated separately (-p -d), not bundled (-pd)");
+            out.println("Options must be stated separately (-p -d), not bundled (-pd)");
+            out.println("");
+            out.println("Output goes to console. Use > to redirect if you need to output to a file.");
             return;
         }
         String filename = arguments.removeFirst();
