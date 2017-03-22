@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * Created by wareya on 2017/03/19.
+/*
+ * Licensed under a public domain‐like license. See Main.java for license text.
  */
 
 class miniAlternativeFact
@@ -16,7 +16,7 @@ class miniAlternativeFact
     String id;
 }
 
-public class miniFrequencyData
+class miniFrequencyData
 {
     private HashMap<String, Integer> frequency = new HashMap<>();
     private HashMap<String, Integer> location = new HashMap<>();
