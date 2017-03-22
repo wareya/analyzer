@@ -155,14 +155,14 @@ public class GUIMain extends Main {
             input.setBounds(5, row, 65, 20); field_input.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
             write.setBounds(5, row, 65, 20); field_write.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
 
-            row = adder.apply(explanation3, row); row += 5;
+            row += 3; row = adder.apply(explanation3, row); row += 3;
             row = adder.apply(option_enable_blacklist, row);
             row = adder.apply(option_enable_filter_dictionary, row);
             row = adder.apply(option_enable_filter_type, row);
             row = adder.apply(option_enable_filter_punctuation, row);
             row = adder.apply(option_enable_special_blacklist, row);
 
-            row = adder.apply(explanation4, row); row += 5;
+            row += 3; row = adder.apply(explanation4, row); row += 3;
             row = adder.apply(option_strip_furigana, row);
             row = adder.apply(option_enable_linecount, row);
             row += 5;
