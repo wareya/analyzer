@@ -284,9 +284,16 @@ public class Main
         else
             return null;
     }
-    public static void main(String[] args) throws UnsupportedEncodingException
+    public static void main(String[] args)
     {
-        out = new PrintStream(System.out, true, "UTF-8");
+        try
+        {
+            out = new PrintStream(System.out, true, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            System.out.println("Failed to open output as UTF-8.");
+        }
 
         ArrayDeque<String> arguments = new ArrayDeque<>();
         arguments.addAll(Arrays.asList(args));
@@ -334,6 +341,11 @@ public class Main
         catch (FileNotFoundException e)
         {
             out.println("File not found.");
+            return;
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            System.out.println("Failed to open input as UTF-8.");
             return;
         }
 
