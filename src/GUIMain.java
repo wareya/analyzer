@@ -59,8 +59,8 @@ public class GUIMain extends Main {
             option_enable_special_blacklist = new JCheckBox("Enable special blacklist (names from certain VNs)", false);
 
             JLabel explanation4 = new JLabel("Other options:");
-            option_strip_furigana = new JCheckBox("Strip furigana (occurs before parsing)", false);
-            option_enable_linecount = new JCheckBox("Include line count", false);
+            option_strip_furigana = new JCheckBox("Strip 《》 furigana (occurs before parsing) (also deletes 〈 and 〉)", false);
+            option_enable_linecount = new JCheckBox("Include index of line of first occurrence", false);
 
             JButton run = new JButton("Run");
             JProgressBar progress = new JProgressBar();
