@@ -29,6 +29,7 @@ public class Main
     private static boolean blacklist_enabled = true;
     private static boolean special_blacklist_enabled = false;
     private static boolean skip_furigana_formatting = false;
+    private static boolean enable_linecounter = false;
 
     private static Pattern p_re = Pattern.compile("^[\\p{Punct} 　─]*$", Pattern.UNICODE_CHARACTER_CLASS);
     private static Matcher p_m = p_re.matcher("");
@@ -307,6 +308,7 @@ public class Main
             out.println("\t-l: disable part-of-speech filter");
             out.println("\t-p: disable punctuation filter");
             out.println("\t-n: enable special blacklist (names and jargon from certain VNs)");
+            out.println("\t-c: count lines and export index of the first line a term shows up in");
             out.println("Options must be stated separately (-p -d), not bundled (-pd)");
             out.println("Special blacklist only works if normal blacklist is not disabled.");
             out.println("");
@@ -324,6 +326,7 @@ public class Main
             if(argument.equals("-d")) blacklist_enabled = false;
             if(argument.equals("-n")) special_blacklist_enabled = true;
             if(argument.equals("-s")) skip_furigana_formatting = true;
+            if(argument.equals("-c")) enable_linecounter = true;
         }
 
         miniFrequencyData data = new miniFrequencyData();
@@ -350,6 +353,7 @@ public class Main
         }
 
         String line;
+        Integer linecount = 0;
         while ((line = readline(in)) != null)
         {
             //out.println(line);
@@ -367,8 +371,12 @@ public class Main
 
                 String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType()};
                 String identity = StringUtils.join(temp,"\t");
-                data.addEvent(identity);
+                if(enable_linecounter)
+                    data.addEvent(identity, linecount);
+                else
+                    data.addEvent(identity, -1);
             }
+            linecount++;
         }
         for(miniAlternativeFact fact : data.getSortedFrequencyList())
             out.println(fact.count+"\t"+fact.id);
