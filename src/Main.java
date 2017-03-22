@@ -25,16 +25,57 @@ public class Main
 {
     private static boolean filter_punctuation_enabled = true;
     private static boolean filter_dictionary_enabled = true;
-    private static boolean filter_enabled = true;
+    private static boolean filter_type_enabled = true;
     private static boolean blacklist_enabled = true;
     private static boolean special_blacklist_enabled = false;
     private static boolean skip_furigana_formatting = false;
+
+    private static Pattern p_re = Pattern.compile("^[\\p{Punct} 　─]*$", Pattern.UNICODE_CHARACTER_CLASS);
+    private static Matcher p_m = p_re.matcher("");
 
     // to force utf-8 output on windows
     private static PrintStream out;
 
     private static HashSet<String> blacklist = new HashSet<>();
+    private static HashSet<String> filter_a = new HashSet<>(); // first PoS term
+    private static HashSet<String> filter_b = new HashSet<>(); // second PoS term
+    private static HashSet<String> filter_c = new HashSet<>(); // combined first+second PoS term
 
+    private static void init_filter()
+    {
+        // not all of these work on the unidic tags, but some of them do, and the broken ones will work for the ipadic tags if you end up using ipadic for some reason
+        filter_a.add("助詞");
+        filter_a.add("助動詞");
+        filter_a.add("感動詞");
+        filter_a.add("接続詞");
+        filter_a.add("固有名詞");
+        filter_a.add("フィラー");
+        filter_a.add("その他");
+        filter_a.add("記号");
+
+        filter_b.add("固有名詞");
+
+        filter_c.add("形容詞	非自立");
+        filter_c.add("形容詞	接尾");
+        filter_c.add("動詞	非自立");
+        filter_c.add("動詞	接尾");
+    }
+    private static boolean filtered(Token token)
+    {
+        // not in dictionary
+        if(filter_dictionary_enabled && !token.isKnown()) return true;
+        // is punctuation
+        if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) return true;
+        // undesirable term
+        if(!filter_type_enabled) return false;
+        for(String s : filter_a)
+            if(token.getPartOfSpeechLevel1().contains(s)) return true;
+        for(String s : filter_b)
+            if(token.getPartOfSpeechLevel1().contains(s)) return true;
+        for(String s : filter_c)
+            if((token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3()).contains(s)) return true;
+        return false;
+    }
     private static void init_blacklist()
     {
     // weekdays
@@ -133,8 +174,8 @@ public class Main
         blacklist.add("千"); // 1000
         blacklist.add("万"); // 10000 (myriad)
         blacklist.add("億"); // myriad^2
-        blacklist.add("兆"); // myriad^3
-        blacklist.add("京"); // myriad^4
+        //blacklist.add("兆"); // myriad^3 // same as a normal common word
+        //blacklist.add("京"); // myriad^4 // same as a normal common word
         blacklist.add("垓"); // myriad^5
     // basic counters
         blacklist.add("一つ");
@@ -260,6 +301,7 @@ public class Main
             out.println("\t-p: disable punctuation filter");
             out.println("\t-n: enable special blacklist (names and jargon from certain VNs)");
             out.println("Options must be stated separately (-p -d), not bundled (-pd)");
+            out.println("Special blacklist only works if normal blacklist is not disabled.");
             out.println("");
             out.println("Output goes to console. Use > to redirect if you need to output to a file.");
             return;
@@ -271,18 +313,17 @@ public class Main
             String argument = arguments.removeFirst();
             if(argument.equals("-p")) filter_punctuation_enabled = false;
             if(argument.equals("-w")) filter_dictionary_enabled = false;
-            if(argument.equals("-l")) filter_enabled = false;
+            if(argument.equals("-l")) filter_type_enabled = false;
             if(argument.equals("-d")) blacklist_enabled = false;
             if(argument.equals("-n")) special_blacklist_enabled = true;
             if(argument.equals("-s")) skip_furigana_formatting = true;
         }
 
-        Pattern p_re = Pattern.compile("^[\\p{Punct} 　─]*$", Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher p_m = p_re.matcher("");
-
         miniFrequencyData data = new miniFrequencyData();
 
+        init_filter();
         init_blacklist();
+
         Tokenizer tokenizer = new Tokenizer.Builder().build();
 
         InputStreamReader in;
@@ -305,41 +346,12 @@ public class Main
             {
                 // skip undesired terms
 
-                if(filter_dictionary_enabled && !token.isKnown()) continue; // not from the dictionary
-                if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) continue; // punctuation
-
-                // not all of these work on the unidic tags, but some of them do, and the broken ones will work for the ipadic tags if you end up using ipadic for some reason
-
-                String parts = token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3();
-
-                if(filter_enabled)
-                {
-                    if(token.getPartOfSpeechLevel1().contains("助詞")) continue; // particles
-                    if(token.getPartOfSpeechLevel1().contains("助動詞")) continue; // strict auxiliary verbs (ます, だ, etc)
-                    if(token.getPartOfSpeechLevel1().contains("感動詞")) continue; // interjection
-                    if(token.getPartOfSpeechLevel1().contains("接続詞")) continue; // conjunctions
-                    if(token.getPartOfSpeechLevel2().contains("固有名詞")) continue; // proper nouns
-                    if(token.getPartOfSpeechLevel1().contains("フィラー")) continue; // filler ejections
-                    if(token.getPartOfSpeechLevel1().contains("その他")) continue; // "other"
-                    if(token.getPartOfSpeechLevel1().contains("記号")) continue; // symbols
-                    if(token.getPartOfSpeechLevel1().contains("記号")) continue; // symbols
-
-                    if(parts.contains("形容詞	非自立")) continue; // dependent i-adjectives (いい from ていい etc)
-                    if(parts.contains("形容詞	接尾")) continue; // abnormal adjectives (ぽい etc)
-                    if(parts.contains("動詞	非自立")) continue; // dependent verbs (やる from てやる etc)
-                    if(parts.contains("動詞	接尾")) continue; // abnormal verbs (られる etc)
-                }
-
+                if(filtered(token)) continue;
                 if(blacklisted(token.getWrittenBaseForm())) continue;
 
-                //Kana spelling   Kana pronunciation  Actual pronunciation   Term
-                //イウ            ユウ                ユー                   いう
-                //ケッコウ        ケッコウ            ケッコー               結構
-                //トウ            トウ                トウ                   問う
-                //getKanaBase(), getFormBase(), getPronunciationBaseForm(), getWrittenBaseForm()
-                //everything else is affected in conjugation
-
                 // record event
+
+                String parts = token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3();
 
                 String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType()};
                 String identity = StringUtils.join(temp,"\t");
