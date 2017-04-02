@@ -31,7 +31,7 @@ public class GUIMain extends Main {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (ClassNotFoundException|InstantiationException|IllegalAccessException|UnsupportedLookAndFeelException e) { /* */ }
 
-            Image icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE); // blank icon because the java icon is a bad meme
+            Image icon = new ImageIcon(Main.class.getResource("icon.png")).getImage();
             JFrame window = new JFrame();
             window.setIconImage(icon);
             window.setTitle("unnamed japanese text analysis tool");

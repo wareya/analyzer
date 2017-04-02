@@ -5,6 +5,7 @@
       <element id="module-output" name="analyzer" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/kuromoji-unidic-kanaaccent-0.9.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/kuromoji-core-0.9.0.jar" path-in-jar="/" />
+      <element id="file-copy" path="$PROJECT_DIR$/resource/icon.png" />
     </root>
   </artifact>
 </component>
