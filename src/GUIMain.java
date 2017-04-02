@@ -76,14 +76,14 @@ public class GUIMain extends Main {
                 FileDialog d = new FileDialog((java.awt.Frame) null, "Corpus (input)", FileDialog.LOAD);
                 d.setVisible(true);
                 if(d.getFile() != null)
-                    field_input.setText(d.getFile());
+                    field_input.setText(d.getDirectory()+d.getFile());
             });
             write.addActionListener((e)->
             {
                 FileDialog d = new java.awt.FileDialog((java.awt.Frame) null, "Frequency list (output)", FileDialog.SAVE);
                 d.setVisible(true);
                 if(d.getFile() != null)
-                    field_write.setText(d.getFile());
+                    field_write.setText(d.getDirectory()+d.getFile());
             });
 
             run.addActionListener((a)->
