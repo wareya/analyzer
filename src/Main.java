@@ -12,8 +12,8 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
  */
 
-import com.atilika.kuromoji.unidic.kanaaccent.Token;
-import com.atilika.kuromoji.unidic.kanaaccent.Tokenizer;
+import com.atilika.kuromoji.unidic.neologd.Token;
+import com.atilika.kuromoji.unidic.neologd.Tokenizer;
 import com.atilika.kuromoji.util.StringUtils;
 
 import java.io.*;
@@ -53,7 +53,7 @@ public class Main
     private static HashSet<String> blacklist = new HashSet<>();
     private static HashSet<String> filter_a = new HashSet<>(); // first PoS term
     private static HashSet<String> filter_b = new HashSet<>(); // second PoS term
-    private static HashSet<String> filter_c = new HashSet<>(); // combined first+second PoS term
+    private static HashSet<String> filter_c = new HashSet<>(); // combined 1+2+3 PoS terms
 
     private static void init_filter()
     {
@@ -62,17 +62,15 @@ public class Main
         filter_a.add("助動詞");
         filter_a.add("感動詞");
         filter_a.add("接続詞");
-        filter_a.add("固有名詞");
         filter_a.add("フィラー");
         filter_a.add("その他");
         filter_a.add("記号");
-
-        filter_b.add("固有名詞");
 
         filter_c.add("形容詞	非自立");
         filter_c.add("形容詞	接尾");
         filter_c.add("動詞	非自立");
         filter_c.add("動詞	接尾");
+        filter_c.add("固有名詞");
     }
     private static boolean filtered(Token token)
     {
@@ -353,10 +351,11 @@ public class Main
 
                 // record event
 
-                String parts = token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3();
+                String parts = token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3()+"\t"+token.getPartOfSpeechLevel4();
 
-                String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType()};
+                String[] temp = {token.getWrittenBaseForm(), token.getPronunciationBaseForm(), token.getLanguageType(), parts, token.getConjugationType()};
                 String identity = StringUtils.join(temp,"\t");
+
                 if(enable_linecounter)
                     data.addEvent(identity, line_index);
                 else

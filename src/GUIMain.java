@@ -54,7 +54,7 @@ public class GUIMain extends Main {
             JLabel explanation3 = new JLabel("Filters:");
             option_enable_blacklist = new JCheckBox("Disallow number terms (1, １, 一, 一月, 月曜, 一つ etc)", true);
             option_enable_filter_dictionary = new JCheckBox("Require term to be in dictionary", true);
-            option_enable_filter_type = new JCheckBox("Disallow particles/conjunctions/inflections/etc", true);
+            option_enable_filter_type = new JCheckBox("Disallow particles/conjunctions/inflections/names/etc", true);
             option_enable_filter_punctuation = new JCheckBox("Disallow punctuation", true);
             option_enable_special_blacklist = new JCheckBox("Enable special blacklist (names from certain VNs)", false);
 
