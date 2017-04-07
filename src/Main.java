@@ -340,7 +340,19 @@ public class Main
 
         while ((line = readline(in)) != null)
         {
-            update.accept("Parsing file: " + line_index.toString() + "/" + line_count.toString(), line_index/(double)line_count);
+            // update UI less often with very long input files
+            if (line_count > 100000)
+            {
+                if(line_index % 491 == 0)
+                    update.accept("Parsing file: " + line_index.toString() + "/" + line_count.toString(), line_index/(double)line_count);
+            }
+            else if (line_count > 10000)
+            {
+                if(line_index % 17 == 0)
+                    update.accept("Parsing file: " + line_index.toString() + "/" + line_count.toString(), line_index/(double)line_count);
+            }
+            else
+                update.accept("Parsing file: " + line_index.toString() + "/" + line_count.toString(), line_index/(double)line_count);
             List<Token> tokens = tokenizer.tokenize(line);
             for (Token token : tokens)
             {
