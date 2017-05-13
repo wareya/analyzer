@@ -365,7 +365,7 @@ public class Main
 
                 String parts = token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3();
 
-                String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType()};
+                String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType(), token.getLemma(), token.getLemmaReadingForm()};
                 String identity = StringUtils.join(temp,"\t");
                 if(enable_linecounter)
                     data.addEvent(identity, line_index);
