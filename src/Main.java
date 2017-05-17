@@ -75,7 +75,7 @@ public class Main
     private static boolean filtered(Token token)
     {
         // not in dictionary
-        if(filter_dictionary_enabled && !token.isKnown()) return true;
+        if(filter_dictionary_enabled && !token.isKnown() && !token.isUser()) return true;
         // is punctuation
         if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) return true;
         // undesirable term
@@ -301,7 +301,8 @@ public class Main
             return null;
     }
 
-    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update)
+    static InputStream userdict;
+    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException
     {
         // first count the lines in the input file
         update.accept("Counting input lines", -1.0);
@@ -333,7 +334,17 @@ public class Main
         init_filter();
         init_blacklist();
 
-        Tokenizer tokenizer = new Tokenizer.Builder().build();
+        Tokenizer tokenizer;
+        if(userdict != null)
+        {
+            System.out.println("Loading user dictionary");
+            tokenizer = new Tokenizer.Builder().userDictionary(userdict).build();
+        }
+        else
+        {
+            System.out.println("Not loading user dictionary");
+            tokenizer = new Tokenizer.Builder().build();
+        }
 
         String line;
         Integer line_index = 0;
@@ -360,13 +371,37 @@ public class Main
 
                 if(filtered(token)) continue;
                 if(blacklisted(token.getWrittenBaseForm())) continue;
-
+                
+                // test stuff
+                
+                //String info = "";
+                //info = token.getSurface() + "\t" + token.getPronunciation() + "\t" + token.getLemmaReadingForm() + "\t" + token.getLemma();
+                //if(!token.getPartOfSpeechLevel1().equals("*"))
+                //    info += "\t" + token.getPartOfSpeechLevel1();
+                //if(!token.getPartOfSpeechLevel2().equals("*"))
+                //    info += "-" + token.getPartOfSpeechLevel2();
+                //if(!token.getPartOfSpeechLevel3().equals("*"))
+                //    info += "-" + token.getPartOfSpeechLevel3();
+                //if(!token.getPartOfSpeechLevel4().equals("*"))
+                //    info += "-" + token.getPartOfSpeechLevel4();
+                //info += "\t";
+                //if(!token.getConjugationType().equals("*"))
+                //    info += token.getConjugationType();
+                //info += "\t";
+                //if(!token.getConjugationForm().equals("*"))
+                //    info += token.getConjugationForm();
+                //
+                //println(out, info);
+                //println(out, "");
+                //if(true) continue;
+                
                 // record event
 
                 String parts = token.getPartOfSpeechLevel1()+"\t"+token.getPartOfSpeechLevel2()+"\t"+token.getPartOfSpeechLevel3();
 
                 String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType(), token.getLemma(), token.getLemmaReadingForm()};
                 String identity = StringUtils.join(temp,"\t");
+                
                 if(enable_linecounter)
                     data.addEvent(identity, line_index);
                 else
@@ -386,6 +421,12 @@ public class Main
         catch (IOException e)
         {
             update.accept("File access error occured while counting lines.", 0.0);
+        }
+        
+        if(userdict != null)
+        {
+            userdict.close();
+            userdict = null;
         }
     }
 

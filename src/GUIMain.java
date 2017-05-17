@@ -21,6 +21,7 @@ public class GUIMain extends Main {
 
     static private JCheckBox option_strip_furigana;
     static private JCheckBox option_enable_linecount;
+    static private JCheckBox option_enable_userdict;
 
     public static void main(String[] args)
     {
@@ -61,6 +62,7 @@ public class GUIMain extends Main {
             JLabel explanation4 = new JLabel("Other options:");
             option_strip_furigana = new JCheckBox("Strip 《》 furigana (occurs before parsing) (also deletes 〈 and 〉)", false);
             option_enable_linecount = new JCheckBox("Include index of line of first occurrence", false);
+            option_enable_userdict = new JCheckBox("Load additional user dictionary from userdict.csv", true);
 
             JButton run = new JButton("Run");
             JProgressBar progress = new JProgressBar();
@@ -96,6 +98,26 @@ public class GUIMain extends Main {
 
                 skip_furigana_formatting = option_strip_furigana.isSelected();
                 enable_linecounter = option_enable_linecount.isSelected();
+                
+                if(option_enable_userdict.isSelected())
+                {
+                    try
+                    {
+                        userdict = new FileInputStream("userdict.csv");
+                    }
+                    catch (IOException e)
+                    {
+                        userdict = null;
+                        progress.setString("Failed to load user dictionary");
+                        progress.setIndeterminate(false);
+                        progress.setValue(0);
+                        return;
+                    }
+                }
+                else
+                {
+                    System.out.println("Not using user dictionary");
+                }
 
                 if(worker != null && worker.isAlive()) return;
                 worker = new Thread(() ->
@@ -165,6 +187,7 @@ public class GUIMain extends Main {
             row += 3; row = adder.apply(explanation4, row); row += 3;
             row = adder.apply(option_strip_furigana, row);
             row = adder.apply(option_enable_linecount, row);
+            row = adder.apply(option_enable_userdict, row);
             row += 5;
 
             run.setBounds(5, row, 65, 20); progress.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
@@ -188,6 +211,7 @@ public class GUIMain extends Main {
 
             pane.add(option_strip_furigana);
             pane.add(option_enable_linecount);
+            pane.add(option_enable_userdict);
 
             pane.add(run);
             pane.add(progress);

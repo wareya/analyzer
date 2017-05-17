@@ -53,8 +53,13 @@ public class ConsoleMain extends Main {
                 if(argument.equals("-s")) skip_furigana_formatting = true;
                 if(argument.equals("-c")) enable_linecounter = true;
             }
-
-            run(filename, out, (a,e)->{});
+            
+            try
+            {
+                run(filename, out, (a,e)->{});
+            }
+            catch(IOException e)
+            { /**/ }
         }
         try
         {
