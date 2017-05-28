@@ -92,26 +92,7 @@ public class GUIMain extends Main {
                 skip_furigana_formatting = option_strip_furigana.isSelected();
                 enable_linecounter = option_enable_linecount.isSelected();
                 
-                if(option_enable_userdict.isSelected())
-                {
-                    try
-                    {
-                        userdict = new FileInputStream("userdict.csv");
-                    }
-                    catch (IOException e)
-                    {
-                        userdict = null;
-                        progress.setString("Failed to load user dictionary");
-                        progress.setIndeterminate(false);
-                        progress.setValue(0);
-                        return;
-                    }
-                }
-                else
-                {
-                    //System.out.println("Not using user dictionary");
-                }
-                
+                enable_userdictionary = option_enable_userdict.isSelected();
                 enable_userfilter = option_enable_userfilter.isSelected();
 
                 if(worker != null && worker.isAlive()) return;

@@ -51,10 +51,10 @@ public class Main
 
     static boolean filter_dictionary_enabled = true;
     static boolean filter_punctuation_enabled = true;
-    static boolean special_blacklist_enabled = false;
     static boolean skip_furigana_formatting = false;
     static boolean enable_linecounter = false;
     static boolean enable_userfilter = true;
+    static boolean enable_userdictionary = true;
 
     // to force utf-8 output on windows
     static BufferedWriter out;
@@ -174,15 +174,34 @@ public class Main
             return null;
     }
 
-    static InputStream userdict = null;
+    private static InputStream userdict = null;
     static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException
     {
-        update.accept("Loading user filter", 0.0);
-        if(enable_userfilter)
+        if(enable_userdictionary)
         {
             try
             {
+                userdict = new FileInputStream("userdict.csv");
+            }
+            catch (IOException e)
+            {
+                userdict = null;
+                update.accept("Failed to load user dictionary", -1.0);
+                return;
+            }
+        }
+        
+        if(enable_userfilter)
+        {
+            update.accept("Loading user filter", -1.0);
+            try
+            {
                 init_filter();
+            }
+            catch (UnsupportedEncodingException e)
+            {
+                update.accept("Failed to open userfilters.csv as UTF-8.", 0.0);
+                return;
             }
             catch (IOException e)
             {
@@ -220,12 +239,12 @@ public class Main
         Tokenizer tokenizer;
         if(userdict != null)
         {
-            update.accept("Initializing kuromoji with user dictionary.", 0.0);
+            update.accept("Initializing kuromoji with user dictionary", -1.0);
             tokenizer = new Tokenizer.Builder().userDictionary(userdict).build();
         }
         else
         {
-            update.accept("Initializing kuromoji without user dictionary.", 0.0);
+            update.accept("Initializing kuromoji without user dictionary", -10.0);
             tokenizer = new Tokenizer.Builder().build();
         }
 
