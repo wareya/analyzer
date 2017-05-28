@@ -27,10 +27,9 @@ public class ConsoleMain extends Main {
         {
             println(out, "Usage: java -jar analyzer.jar <corpus.txt> (-[dswlpn] )*");
             println(out, "\tcorpus.txt: must be in utf-8. cannot be named \"-h\" or \"--help\".");
-            println(out, "\t-d: disable number-word blacklist (1, １, 一, 一月, 月曜, etc)");
+            println(out, "\t-d: disable user dictionary (userdict.csv)");
             println(out, "\t-s: strip 〈〉 (but not their contents) and enable 《》 furigana culling (incl. contents) (operates at the code unit level, before parsing)");
             println(out, "\t-w: disable 'only in dictionary' filter");
-            println(out, "\t-l: disable part-of-speech filter");
             println(out, "\t-p: disable punctuation filter");
             println(out, "\t-n: enable special blacklist (names and jargon from certain VNs)");
             println(out, "\t-c: count lines and export index of the first line a term shows up in");
@@ -47,8 +46,7 @@ public class ConsoleMain extends Main {
                 String argument = arguments.removeFirst();
                 if(argument.equals("-p")) filter_punctuation_enabled = false;
                 if(argument.equals("-w")) filter_dictionary_enabled = false;
-                if(argument.equals("-l")) filter_type_enabled = false;
-                if(argument.equals("-d")) blacklist_enabled = false;
+                if(argument.equals("-d")) enable_userfilter = false;
                 if(argument.equals("-n")) special_blacklist_enabled = true;
                 if(argument.equals("-s")) skip_furigana_formatting = true;
                 if(argument.equals("-c")) enable_linecounter = true;

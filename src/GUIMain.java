@@ -13,15 +13,13 @@ import static java.lang.Math.min;
 public class GUIMain extends Main {
     private static Thread worker = null;
 
-    static private JCheckBox option_enable_blacklist;
     static private JCheckBox option_enable_filter_dictionary;
-    static private JCheckBox option_enable_filter_type;
     static private JCheckBox option_enable_filter_punctuation;
-    static private JCheckBox option_enable_special_blacklist;
 
     static private JCheckBox option_strip_furigana;
     static private JCheckBox option_enable_linecount;
     static private JCheckBox option_enable_userdict;
+    static private JCheckBox option_enable_userfilter;
 
     public static void main(String[] args)
     {
@@ -53,11 +51,9 @@ public class GUIMain extends Main {
             JTextField field_write = new JTextField("");
 
             JLabel explanation3 = new JLabel("Filters:");
-            option_enable_blacklist = new JCheckBox("Disallow number terms (1, １, 一, 一月, 月曜, 一つ etc)", true);
             option_enable_filter_dictionary = new JCheckBox("Require term to be in dictionary", true);
-            option_enable_filter_type = new JCheckBox("Disallow particles/conjunctions/inflections/names/etc", true);
             option_enable_filter_punctuation = new JCheckBox("Disallow punctuation", true);
-            option_enable_special_blacklist = new JCheckBox("Enable special blacklist (names from certain VNs)", false);
+            option_enable_userfilter = new JCheckBox("Load filters from userfilter.csv", true);
 
             JLabel explanation4 = new JLabel("Other options:");
             option_strip_furigana = new JCheckBox("Strip 《》 furigana (occurs before parsing) (also deletes 〈 and 〉)", false);
@@ -90,11 +86,8 @@ public class GUIMain extends Main {
 
             run.addActionListener((a)->
             {
-                blacklist_enabled = option_enable_blacklist.isSelected();
                 filter_dictionary_enabled = option_enable_filter_dictionary.isSelected();
-                filter_type_enabled = option_enable_filter_type.isSelected();
                 filter_punctuation_enabled = option_enable_filter_punctuation.isSelected();
-                special_blacklist_enabled = option_enable_special_blacklist.isSelected();
 
                 skip_furigana_formatting = option_strip_furigana.isSelected();
                 enable_linecounter = option_enable_linecount.isSelected();
@@ -116,8 +109,10 @@ public class GUIMain extends Main {
                 }
                 else
                 {
-                    System.out.println("Not using user dictionary");
+                    //System.out.println("Not using user dictionary");
                 }
+                
+                enable_userfilter = option_enable_userfilter.isSelected();
 
                 if(worker != null && worker.isAlive()) return;
                 worker = new Thread(() ->
@@ -178,11 +173,9 @@ public class GUIMain extends Main {
             write.setBounds(5, row, 65, 20); field_write.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
 
             row += 3; row = adder.apply(explanation3, row); row += 3;
-            row = adder.apply(option_enable_blacklist, row);
             row = adder.apply(option_enable_filter_dictionary, row);
-            row = adder.apply(option_enable_filter_type, row);
             row = adder.apply(option_enable_filter_punctuation, row);
-            row = adder.apply(option_enable_special_blacklist, row);
+            row = adder.apply(option_enable_userfilter, row);
 
             row += 3; row = adder.apply(explanation4, row); row += 3;
             row = adder.apply(option_strip_furigana, row);
@@ -203,11 +196,9 @@ public class GUIMain extends Main {
             pane.add(field_input);
             pane.add(field_write);
 
-            pane.add(option_enable_blacklist);
             pane.add(option_enable_filter_dictionary);
-            pane.add(option_enable_filter_type);
             pane.add(option_enable_filter_punctuation);
-            pane.add(option_enable_special_blacklist);
+            pane.add(option_enable_userfilter);
 
             pane.add(option_strip_furigana);
             pane.add(option_enable_linecount);
