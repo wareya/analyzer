@@ -62,6 +62,7 @@ public class Main
     private static Pattern p_re = Pattern.compile("^[\\p{Punct} 　─]*$", Pattern.UNICODE_CHARACTER_CLASS);
     private static Matcher p_m = p_re.matcher("");
     private static ArrayList<FilterInfo> filters = new ArrayList<>();
+    private static HashSet<String> basic_filters = new HashSet<>();
     
     private static FilterInfo filter_builder(String str)
     {
@@ -105,7 +106,17 @@ public class Main
         InputStreamReader userfilters = new InputStreamReader(new FileInputStream("userfilters.csv"), "UTF-8");
         String line;
         while ((line = readline(userfilters, true)) != null)
-            filters.add(filter_builder(line));
+        {
+            FilterInfo filter = filter_builder(line);
+            if(filter.mode_word == 1 &&
+               filter.mode_a == 0 &&
+               filter.mode_b == 0 &&
+               filter.mode_c == 0 &&
+               filter.mode_d == 0) 
+                basic_filters.add(filter.word); // hashmap lookup is much faster than looping through an ArrayList
+            else
+                filters.add(filter);
+        }
         userfilters.close();
     }
     
@@ -118,7 +129,11 @@ public class Main
         if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) return true;
         
         // undesirable term
+        
         if(!enable_userfilter) return false;
+        
+        if(basic_filters.contains(token.getWrittenBaseForm()))
+            return true;
         for(FilterInfo f : filters)
         {
             if(f == null) continue;
