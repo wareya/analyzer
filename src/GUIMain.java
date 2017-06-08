@@ -20,6 +20,8 @@ public class GUIMain extends Main {
     static private JCheckBox option_enable_linecount;
     static private JCheckBox option_enable_userdict;
     static private JCheckBox option_enable_userfilter;
+    
+    static private JCheckBox option_pull_out_spellings;
 
     public static void main(String[] args)
     {
@@ -59,6 +61,8 @@ public class GUIMain extends Main {
             option_strip_furigana = new JCheckBox("Strip 《》 furigana (occurs before parsing) (also deletes 〈 and 〉)", false);
             option_enable_linecount = new JCheckBox("Include index of line of first occurrence", false);
             option_enable_userdict = new JCheckBox("Load additional user dictionary from userdict.csv", true);
+            
+            option_pull_out_spellings = new JCheckBox("\"Pull out\" spellings", false);
 
             JButton run = new JButton("Run");
             JProgressBar progress = new JProgressBar();
@@ -94,6 +98,8 @@ public class GUIMain extends Main {
                 
                 enable_userdictionary = option_enable_userdict.isSelected();
                 enable_userfilter = option_enable_userfilter.isSelected();
+                
+                pull_out_spellings = option_pull_out_spellings.isSelected();
 
                 if(worker != null && worker.isAlive()) return;
                 worker = new Thread(() ->
@@ -162,6 +168,7 @@ public class GUIMain extends Main {
             row = adder.apply(option_strip_furigana, row);
             row = adder.apply(option_enable_linecount, row);
             row = adder.apply(option_enable_userdict, row);
+            row = adder.apply(option_pull_out_spellings, row);
             row += 5;
 
             run.setBounds(5, row, 65, 20); progress.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
@@ -184,6 +191,7 @@ public class GUIMain extends Main {
             pane.add(option_strip_furigana);
             pane.add(option_enable_linecount);
             pane.add(option_enable_userdict);
+            pane.add(option_pull_out_spellings);
 
             pane.add(run);
             pane.add(progress);

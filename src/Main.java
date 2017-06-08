@@ -34,9 +34,9 @@ class FilterInfo {
     int mode_c = 0;
     int mode_d = 0;
 }
+
 public class Main
 {
-
     public static void main(String[] args)
     {
         ArrayDeque<String> arguments = new ArrayDeque<>();
@@ -55,6 +55,8 @@ public class Main
     static boolean enable_linecounter = false;
     static boolean enable_userfilter = true;
     static boolean enable_userdictionary = true;
+    
+    static boolean pull_out_spellings = false;
 
     // to force utf-8 output on windows
     static BufferedWriter out;
@@ -303,7 +305,7 @@ public class Main
             line_index++;
         }
         update.accept("Writing output", 1.0);
-        for(miniAlternativeFact fact : data.getSortedFrequencyList())
+        for(Fact fact : data.getSortedFrequencyList())
             println(out, fact.count+"\t"+fact.id);
         update.accept("Done", -1.0);
 

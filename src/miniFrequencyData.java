@@ -5,9 +5,9 @@ import java.util.HashMap;
  * Licensed under a public domain‐like license. See Main.java for license text.
  */
 
-class miniAlternativeFact
+class Fact
 {
-    miniAlternativeFact(Integer count, String id)
+    Fact(Integer count, String id)
     {
         this.count = count;
         this.id = id;
@@ -19,31 +19,70 @@ class miniAlternativeFact
 class miniFrequencyData
 {
     private HashMap<String, Integer> frequency = new HashMap<>();
+    private HashMap<String, HashMap<String, Integer>> spellings = new HashMap<>();
     private HashMap<String, Integer> location = new HashMap<>();
     void addEvent(String id, Integer extra)
     {
-        if(frequency.containsKey(id))
-            frequency.replace(id, frequency.get(id)+1);
+        String name = id.split("\t", 2)[0];
+        String identity = id.split("\t", 2)[1];
+        if(frequency.containsKey(identity))
+            frequency.replace(identity, frequency.get(identity)+1);
         else
         {
-            frequency.put(id, 1);
-            location.put(id, extra);
+            frequency.put(identity, 1);
+            location.put(identity, extra);
+        }
+        
+        if(Main.pull_out_spellings)
+        {
+            if(spellings.containsKey(identity))
+            {
+                HashMap<String, Integer> entry = spellings.get(identity);
+                if(entry.containsKey(name))
+                    entry.replace(name, entry.get(name)+1);
+                else
+                    entry.put(name, 1);
+            }
+            else
+            {
+                HashMap<String, Integer> entry = new HashMap<>();
+                entry.put(name, 1);
+                spellings.put(identity, entry);
+            }
         }
     }
 
-    ArrayList<miniAlternativeFact> getSortedFrequencyList()
+    ArrayList<Fact> getSortedFrequencyList()
     {
-        ArrayList<miniAlternativeFact> mapping = new ArrayList<>();
+        ArrayList<Fact> mapping = new ArrayList<>();
         for(HashMap.Entry<String, Integer> v : frequency.entrySet())
         {
             Integer frequency = v.getValue();
             String identity = v.getKey();
             Integer location = this.location.get(v.getKey());
+            
+            Fact fact = new Fact(frequency, identity);
 
             if(location >= 0)
-                mapping.add(new miniAlternativeFact(frequency, identity+"\t"+location.toString()));
-            else
-                mapping.add(new miniAlternativeFact(frequency, identity));
+                fact.id += "\t"+location.toString();
+            
+            if(Main.pull_out_spellings)
+            {
+                HashMap<String, Integer> my_spellings = spellings.get(identity);
+                ArrayList<Fact> my_sorted_spellings = new ArrayList<>();
+                
+                for(HashMap.Entry<String, Integer> v2 : my_spellings.entrySet()) 
+                    my_sorted_spellings.add(new Fact(v2.getValue(), v2.getKey()));
+                
+                my_sorted_spellings.sort((a, b) -> b.count - a.count);
+                
+                for(Fact f : my_sorted_spellings)
+                    fact.id += "\t" + f.id + "\t" + f.count;
+            }
+            
+            mapping.add(fact);
+            
+            //spellings.get(identity).entrySet().stream().sorted(Comparator.comparingInt(e -> e.getValue())).forEach(e -> fact.id += "\t" + e.getKey() + "\t" + e.getValue());
         }
 
         mapping.sort((a, b) -> b.count - a.count);
