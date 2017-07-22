@@ -57,6 +57,7 @@ public class Main
     static boolean enable_userdictionary = true;
     
     static boolean pull_out_spellings = false;
+    static boolean lexeme_only = false;
 
     // to force utf-8 output on windows
     static BufferedWriter out;

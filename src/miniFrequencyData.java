@@ -1,4 +1,7 @@
+import com.sun.deploy.util.ArrayUtil;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /*
@@ -23,8 +26,23 @@ class miniFrequencyData
     private HashMap<String, Integer> location = new HashMap<>();
     void addEvent(String id, Integer extra)
     {
-        String name = id.split("\t", 2)[0];
-        String identity = id.split("\t", 2)[1];
+        String name;
+        String identity;
+        if(Main.pull_out_spellings)
+        {
+            name = id.split("\t", 2)[0];
+            identity = id.split("\t", 2)[1];
+        }
+        else if(Main.lexeme_only)
+        {
+            name = String.join("\t", Arrays.copyOf(id.split("\t", 5),4));
+            identity = id.split("\t", 5)[4];
+        }
+        else
+        {
+            name = "";
+            identity = id;
+        }
         if(frequency.containsKey(identity))
             frequency.replace(identity, frequency.get(identity)+1);
         else
@@ -33,7 +51,7 @@ class miniFrequencyData
             location.put(identity, extra);
         }
         
-        if(Main.pull_out_spellings)
+        if(Main.pull_out_spellings || Main.lexeme_only)
         {
             if(spellings.containsKey(identity))
             {
@@ -66,7 +84,7 @@ class miniFrequencyData
             if(location >= 0)
                 fact.id += "\t"+location.toString();
             
-            if(Main.pull_out_spellings)
+            if(Main.pull_out_spellings || Main.lexeme_only)
             {
                 HashMap<String, Integer> my_spellings = spellings.get(identity);
                 ArrayList<Fact> my_sorted_spellings = new ArrayList<>();

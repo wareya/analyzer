@@ -21,7 +21,7 @@ public class GUIMain extends Main {
     static private JCheckBox option_enable_userdict;
     static private JCheckBox option_enable_userfilter;
     
-    static private JCheckBox option_pull_out_spellings;
+    static private JComboBox<String> option_respelling_mode;
 
     public static void main(String[] args)
     {
@@ -62,7 +62,9 @@ public class GUIMain extends Main {
             option_enable_linecount = new JCheckBox("Include index of line of first occurrence", false);
             option_enable_userdict = new JCheckBox("Load additional user dictionary from userdict.csv", true);
             
-            option_pull_out_spellings = new JCheckBox("\"Pull out\" spellings", false);
+            JLabel explanation5 = new JLabel("What makes a word unique:");
+            String[] respelling_modes = {"Spelling", "Pronunciation", "Lexeme"};
+            option_respelling_mode = new JComboBox<String>(respelling_modes);
 
             JButton run = new JButton("Run");
             JProgressBar progress = new JProgressBar();
@@ -99,7 +101,8 @@ public class GUIMain extends Main {
                 enable_userdictionary = option_enable_userdict.isSelected();
                 enable_userfilter = option_enable_userfilter.isSelected();
                 
-                pull_out_spellings = option_pull_out_spellings.isSelected();
+                pull_out_spellings = option_respelling_mode.getSelectedItem().equals("Pronunciation");
+                lexeme_only = option_respelling_mode.getSelectedItem().equals("Lexeme");
 
                 if(worker != null && worker.isAlive()) return;
                 worker = new Thread(() ->
@@ -168,7 +171,7 @@ public class GUIMain extends Main {
             row = adder.apply(option_strip_furigana, row);
             row = adder.apply(option_enable_linecount, row);
             row = adder.apply(option_enable_userdict, row);
-            row = adder.apply(option_pull_out_spellings, row);
+            explanation5.setBounds(5, row, 150, 20); option_respelling_mode.setBounds(160, row, 150, 20); row += 25;
             row += 5;
 
             run.setBounds(5, row, 65, 20); progress.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
@@ -191,7 +194,8 @@ public class GUIMain extends Main {
             pane.add(option_strip_furigana);
             pane.add(option_enable_linecount);
             pane.add(option_enable_userdict);
-            pane.add(option_pull_out_spellings);
+            pane.add(explanation5);
+            pane.add(option_respelling_mode);
 
             pane.add(run);
             pane.add(progress);

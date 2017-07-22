@@ -35,6 +35,7 @@ public class ConsoleMain extends Main {
             println(out, "\t-p: disable punctuation filter");
             println(out, "\t-c: count lines and export index of the first line a term shows up in");
             println(out, "\t-l: pull out spellings to additional columns (merge respellings of words)");
+            println(out, "\t-x: lexmee mode (pull out spellings, pronunciations, and accents, overrides/replaces -l)");
             println(out, "Options must be stated separately (-p -d), not bundled (-pd)");
             println(out, "");
             println(out, "Output goes to standard output. Use > to output to a file.");
@@ -53,6 +54,7 @@ public class ConsoleMain extends Main {
                 if(argument.equals("-s")) skip_furigana_formatting = true;
                 if(argument.equals("-c")) enable_linecounter = true;
                 if(argument.equals("-l")) pull_out_spellings = true;
+                if(argument.equals("-x")) lexeme_only = true;
             }
             try
             {
