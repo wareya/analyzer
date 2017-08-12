@@ -348,11 +348,16 @@ public class Main
 
                 if(enable_append_line)
                     extraFieldsList.add(line);
-
-                StringJoiner extraFields = new StringJoiner("\t");
-                extraFieldsList.forEach(extraField -> extraFields.add(extraField));
-
-                data.addEvent(identity, eventLineIndex, extraFields.toString());
+                
+                if(extraFieldsList.size() > 0)
+                {
+                    StringJoiner extraFields = new StringJoiner("\t");
+                    extraFieldsList.forEach(extraField -> extraFields.add(extraField));
+    
+                    data.addEvent(identity, eventLineIndex, extraFields.toString());
+                }
+                else
+                    data.addEvent(identity, eventLineIndex, null);
             }
             line_index++;
         }

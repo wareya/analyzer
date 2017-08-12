@@ -50,7 +50,6 @@ class miniFrequencyData
             frequency.put(identity, 1);
             location.put(identity, extra);
             line.put(identity, extraFields);
-
         }
         
         if(Main.pull_out_spellings || Main.lexeme_only)
