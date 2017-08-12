@@ -55,7 +55,12 @@ public class Main
     static boolean enable_linecounter = false;
     static boolean enable_userfilter = true;
     static boolean enable_userdictionary = true;
-    
+    static boolean kanji_only = true;
+    static int sentence_column = 4;
+    static boolean enable_append_line = true;
+    static boolean enable_cloze_reading = true;
+    static boolean enable_cloze_writing = true;
+
     static boolean pull_out_spellings = false;
     static boolean lexeme_only = false;
 
@@ -130,7 +135,9 @@ public class Main
         
         // is punctuation
         if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) return true;
-        
+
+        if(kanji_only && !token.getWrittenBaseForm().matches("[\\u4e00-\\u9faf]+.*")) return true;
+
         // undesirable term
         
         if(!enable_userfilter) return false;
@@ -271,6 +278,9 @@ public class Main
 
         while ((line = readline(in, false)) != null)
         {
+            String[] split = line.split("\\t");
+            line = split[sentence_column];
+
             // update UI less often with very long input files
             if (line_count > 100000)
             {
@@ -297,11 +307,22 @@ public class Main
 
                 String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType(), token.getLemma(), token.getLemmaReadingForm()};
                 String identity = StringUtils.join(temp,"\t");
-                
+
+                int eventLineIndex = -1;
                 if(enable_linecounter)
-                    data.addEvent(identity, line_index);
-                else
-                    data.addEvent(identity, -1);
+                    eventLineIndex = line_index;
+                StringBuilder eventLine = new StringBuilder();
+                if(enable_append_line) {
+                    String reading = Utils.toHiragana(token.getKana());
+                    if(enable_cloze_reading)
+                        eventLine.append(line.replace(token.getSurface(), "{{c1::" + reading + "::" + token.getSurface() + "}}"));
+                    if(enable_cloze_reading && enable_cloze_writing)
+                        eventLine.append("\t");
+                    if(enable_cloze_writing)
+                        eventLine.append(line.replace(token.getSurface(), "{{c1::" + token.getSurface() + "::" + reading + "}}"));
+                }
+
+                data.addEvent(identity, eventLineIndex, eventLine.toString());
             }
             line_index++;
         }

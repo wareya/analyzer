@@ -24,7 +24,9 @@ class miniFrequencyData
     private HashMap<String, Integer> frequency = new HashMap<>();
     private HashMap<String, HashMap<String, Integer>> spellings = new HashMap<>();
     private HashMap<String, Integer> location = new HashMap<>();
-    void addEvent(String id, Integer extra)
+    private HashMap<String, String> line = new HashMap<>();
+
+    void addEvent(String id, Integer extra, String originalLine)
     {
         String name;
         String identity;
@@ -49,6 +51,8 @@ class miniFrequencyData
         {
             frequency.put(identity, 1);
             location.put(identity, extra);
+            line.put(identity, originalLine);
+
         }
         
         if(Main.pull_out_spellings || Main.lexeme_only)
@@ -78,11 +82,15 @@ class miniFrequencyData
             Integer frequency = v.getValue();
             String identity = v.getKey();
             Integer location = this.location.get(v.getKey());
+            String line = this.line.get(v.getKey());
             
             Fact fact = new Fact(frequency, identity);
 
             if(location >= 0)
                 fact.id += "\t"+location.toString();
+
+            if(line != null)
+                fact.id += "\t"+line;
             
             if(Main.pull_out_spellings || Main.lexeme_only)
             {
