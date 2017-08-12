@@ -51,7 +51,7 @@ public class GUIMain extends Main {
 
             JLabel explanation2 = new JLabel("Input must be in UTF-8.");
             JButton input = new JButton("Input");
-            JLabel sentence_index_explanation = new JLabel("Index of sentence for TSV input:");
+            JLabel sentence_index_explanation = new JLabel("Index of sentence for TSV input (analyze whole line if -1):");
 
             JButton write = new JButton("Output");
             JTextField field_input = new JTextField("");
@@ -187,7 +187,7 @@ public class GUIMain extends Main {
             input.setBounds(5, row, 65, 20); field_input.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
 
 
-            sentence_index_explanation.setBounds(5, row, 160, 20); field_sentence_index_input.setBounds(165, row, 30, 20);   row += 25;
+            sentence_index_explanation.setBounds(5, row, 280, 20); field_sentence_index_input.setBounds(285, row, 30, 20); row += 25;
 
             write.setBounds(5, row, 65, 20); field_write.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
 

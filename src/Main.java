@@ -201,7 +201,7 @@ public class Main
     }
 
     private static InputStream userdict = null;
-    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException, Exception
+    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException
     {
         if(enable_userdictionary)
         {
@@ -282,10 +282,14 @@ public class Main
             String text = line;
             if (sentence_index > -1) {
                 String[] split = line.split("\\t");
-                if (split.length > sentence_index) {
+                if (split.length > sentence_index)
+                {
                     text = split[sentence_index];
-                } else {
-                    throw new Exception("Sentence index out of range");
+                }
+                else
+                {
+                    update.accept("Sentence index out of range", 0.0);
+                    return;
                 }
             }
 
@@ -322,29 +326,28 @@ public class Main
 
                 List<String> extraFieldsList = new ArrayList<String>();
 
-                if(enable_sentence_reading) {
+                if(enable_sentence_reading)
+                {
                     StringBuilder cloze = new StringBuilder();
 
                     for (Token clozeToken : tokens)
                     {
                         StringBuilder word = new StringBuilder();
-                        boolean isCurrentToken = token.getSurface() == clozeToken.getSurface();
-                        if (enable_sentence_reading_cloze && isCurrentToken) {
+                        boolean isCurrentToken = token.getSurface().equals(clozeToken.getSurface());
+                        if (enable_sentence_reading_cloze && isCurrentToken)
                             word.append("<span class=\"cloze\">");
-                        }
+                        
                         word.append(Utils.toFurigana(clozeToken));
-                        if (enable_sentence_reading_cloze && isCurrentToken) {
+                        if (enable_sentence_reading_cloze && isCurrentToken)
                             word.append("</span>");
-                        }
 
                         cloze.append(word);
                     }
                     extraFieldsList.add(cloze.toString());
                 }
 
-                if(enable_append_line) {
+                if(enable_append_line)
                     extraFieldsList.add(line);
-                }
 
                 StringJoiner extraFields = new StringJoiner("\t");
                 extraFieldsList.forEach(extraField -> extraFields.add(extraField));
