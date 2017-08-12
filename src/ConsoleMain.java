@@ -76,6 +76,8 @@ public class ConsoleMain extends Main {
             }
             catch(IOException e)
             { /**/ }
+            catch(Exception e)
+            { /**/ }
         }
         try
         {

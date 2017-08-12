@@ -26,7 +26,7 @@ class miniFrequencyData
     private HashMap<String, Integer> location = new HashMap<>();
     private HashMap<String, String> line = new HashMap<>();
 
-    void addEvent(String id, Integer extra, String originalLine)
+    void addEvent(String id, Integer extra, String extraFields)
     {
         String name;
         String identity;
@@ -51,7 +51,7 @@ class miniFrequencyData
         {
             frequency.put(identity, 1);
             location.put(identity, extra);
-            line.put(identity, originalLine);
+            line.put(identity, extraFields);
 
         }
         

@@ -55,10 +55,10 @@ public class Main
     static boolean enable_linecounter = false;
     static boolean enable_userfilter = true;
     static boolean enable_userdictionary = true;
-    static boolean kanji_only = true;
-    static int sentence_column = 4;
-    static boolean enable_append_line = true;
-    static boolean enable_cloze = true;
+    static boolean filter_kanji_only = false;
+    static int sentence_index = -1;
+    static boolean enable_append_line = false;
+    static boolean enable_sentence_reading = false;
 
     static boolean pull_out_spellings = false;
     static boolean lexeme_only = false;
@@ -135,7 +135,7 @@ public class Main
         // is punctuation
         if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) return true;
 
-        if(kanji_only && !token.getWrittenBaseForm().matches("[\\u4e00-\\u9faf]+.*")) return true;
+        if(filter_kanji_only && !token.getWrittenBaseForm().matches("[\\u4e00-\\u9faf]+.*")) return true;
 
         // undesirable term
         
@@ -199,7 +199,7 @@ public class Main
     }
 
     private static InputStream userdict = null;
-    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException
+    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException, Exception
     {
         if(enable_userdictionary)
         {
@@ -277,8 +277,15 @@ public class Main
 
         while ((line = readline(in, false)) != null)
         {
-            String[] split = line.split("\\t");
-            String text = split[sentence_column];
+            String text = line;
+            if (sentence_index > -1) {
+                String[] split = line.split("\\t");
+                if (split.length > sentence_index) {
+                    text = split[sentence_index];
+                } else {
+                    throw new Exception("Sentence index out of range");
+                }
+            }
 
             // update UI less often with very long input files
             if (line_count > 100000)
@@ -310,32 +317,37 @@ public class Main
                 int eventLineIndex = -1;
                 if(enable_linecounter)
                     eventLineIndex = line_index;
-                StringBuilder eventLine = new StringBuilder();
-                if(enable_append_line) {
-                    eventLine.append(line);
-                    if(enable_cloze) {
-                        StringBuilder cloze = new StringBuilder();
 
-                        for (Token clozeToken : tokens)
-                        {
-                            StringBuilder word = new StringBuilder();
-                            boolean isCurrentToken = token.getSurface() == clozeToken.getSurface();
-                            if (isCurrentToken) {
-                                word.append("<span class=\"cloze\">");
-                            }
-                            word.append(Utils.toFurigana(clozeToken));
-                            if (isCurrentToken) {
-                                word.append("</span>");
-                            }
+                List<String> extraFieldsList = new ArrayList<String>();
 
-                            cloze.append(word);
+                if(enable_sentence_reading) {
+                    StringBuilder cloze = new StringBuilder();
+
+                    for (Token clozeToken : tokens)
+                    {
+                        StringBuilder word = new StringBuilder();
+                        boolean isCurrentToken = token.getSurface() == clozeToken.getSurface();
+                        if (isCurrentToken) {
+                            word.append("<span class=\"cloze\">");
                         }
-                        eventLine.append("\t");
-                        eventLine.append(cloze);
+                        word.append(Utils.toFurigana(clozeToken));
+                        if (isCurrentToken) {
+                            word.append("</span>");
+                        }
+
+                        cloze.append(word);
                     }
+                    extraFieldsList.add(cloze.toString());
                 }
 
-                data.addEvent(identity, eventLineIndex, eventLine.toString());
+                if(enable_append_line) {
+                    extraFieldsList.add(line);
+                }
+
+                StringJoiner extraFields = new StringJoiner("\t");
+                extraFieldsList.forEach(extraField -> extraFields.add(extraField));
+
+                data.addEvent(identity, eventLineIndex, extraFields.toString());
             }
             line_index++;
         }
