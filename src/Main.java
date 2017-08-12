@@ -58,8 +58,7 @@ public class Main
     static boolean kanji_only = true;
     static int sentence_column = 4;
     static boolean enable_append_line = true;
-    static boolean enable_cloze_reading = true;
-    static boolean enable_cloze_writing = true;
+    static boolean enable_cloze = true;
 
     static boolean pull_out_spellings = false;
     static boolean lexeme_only = false;
@@ -279,7 +278,7 @@ public class Main
         while ((line = readline(in, false)) != null)
         {
             String[] split = line.split("\\t");
-            line = split[sentence_column];
+            String text = split[sentence_column];
 
             // update UI less often with very long input files
             if (line_count > 100000)
@@ -294,7 +293,7 @@ public class Main
             }
             else
                 update.accept("Parsing file: " + line_index.toString() + "/" + line_count.toString(), line_index/(double)line_count);
-            List<Token> tokens = tokenizer.tokenize(line);
+            List<Token> tokens = tokenizer.tokenize(text);
             for (Token token : tokens)
             {
                 // skip undesired terms
@@ -313,13 +312,27 @@ public class Main
                     eventLineIndex = line_index;
                 StringBuilder eventLine = new StringBuilder();
                 if(enable_append_line) {
-                    String reading = Utils.toHiragana(token.getKana());
-                    if(enable_cloze_reading)
-                        eventLine.append(line.replace(token.getSurface(), "{{c1::" + reading + "::" + token.getSurface() + "}}"));
-                    if(enable_cloze_reading && enable_cloze_writing)
+                    eventLine.append(line);
+                    if(enable_cloze) {
+                        StringBuilder cloze = new StringBuilder();
+
+                        for (Token clozeToken : tokens)
+                        {
+                            StringBuilder word = new StringBuilder();
+                            boolean isCurrentToken = token.getSurface() == clozeToken.getSurface();
+                            if (isCurrentToken) {
+                                word.append("<span class=\"cloze\">");
+                            }
+                            word.append(Utils.toFurigana(clozeToken));
+                            if (isCurrentToken) {
+                                word.append("</span>");
+                            }
+
+                            cloze.append(word);
+                        }
                         eventLine.append("\t");
-                    if(enable_cloze_writing)
-                        eventLine.append(line.replace(token.getSurface(), "{{c1::" + token.getSurface() + "::" + reading + "}}"));
+                        eventLine.append(cloze);
+                    }
                 }
 
                 data.addEvent(identity, eventLineIndex, eventLine.toString());
