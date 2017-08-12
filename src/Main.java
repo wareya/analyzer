@@ -59,6 +59,8 @@ public class Main
     static int sentence_index = -1;
     static boolean enable_append_line = false;
     static boolean enable_sentence_reading = false;
+    static boolean enable_sentence_reading_cloze = false;
+
 
     static boolean pull_out_spellings = false;
     static boolean lexeme_only = false;
@@ -327,11 +329,11 @@ public class Main
                     {
                         StringBuilder word = new StringBuilder();
                         boolean isCurrentToken = token.getSurface() == clozeToken.getSurface();
-                        if (isCurrentToken) {
+                        if (enable_sentence_reading_cloze && isCurrentToken) {
                             word.append("<span class=\"cloze\">");
                         }
                         word.append(Utils.toFurigana(clozeToken));
-                        if (isCurrentToken) {
+                        if (enable_sentence_reading_cloze && isCurrentToken) {
                             word.append("</span>");
                         }
 

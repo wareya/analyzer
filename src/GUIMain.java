@@ -18,6 +18,7 @@ public class GUIMain extends Main {
 
     static private JCheckBox option_strip_furigana;
     static private JCheckBox option_enable_sentence_reading;
+    static private JCheckBox option_enable_sentence_reading_cloze;
     static private JCheckBox option_enable_linecount;
     static private JCheckBox option_append_line;
     static private JCheckBox option_enable_userdict;
@@ -65,7 +66,9 @@ public class GUIMain extends Main {
 
             JLabel explanation4 = new JLabel("Other options:");
             option_strip_furigana = new JCheckBox("Strip 《》 furigana (occurs before parsing) (also deletes 〈 and 〉)", false);
-            option_enable_sentence_reading = new JCheckBox("Include sentence with furigana reading and close html tags for keyword", false);
+            option_enable_sentence_reading = new JCheckBox("Include sentence with furigana reading", false);
+            option_enable_sentence_reading_cloze = new JCheckBox("Also include cloze html tags to mark the keyword in the sentence", false);
+            option_enable_sentence_reading_cloze.setMargin(new Insets(0,20,0,0));
             option_enable_linecount = new JCheckBox("Include index of line of first occurrence", false);
             option_append_line = new JCheckBox("Append entire line of first occurrence", false);
             option_enable_userdict = new JCheckBox("Load additional user dictionary from userdict.csv", true);
@@ -106,6 +109,7 @@ public class GUIMain extends Main {
 
                 skip_furigana_formatting = option_strip_furigana.isSelected();
                 enable_sentence_reading = option_enable_sentence_reading.isSelected();
+                enable_sentence_reading_cloze = option_enable_sentence_reading_cloze.isSelected();
                 enable_linecounter = option_enable_linecount.isSelected();
                 enable_append_line = option_append_line.isSelected();
                 
@@ -193,9 +197,10 @@ public class GUIMain extends Main {
             row = adder.apply(option_enable_filter_kanji_only, row);
             row = adder.apply(option_enable_userfilter, row);
 
-            row += 5; row = adder.apply(explanation4, row); row += 5;
+            row += 6; row = adder.apply(explanation4, row); row += 6;
             row = adder.apply(option_strip_furigana, row);
             row = adder.apply(option_enable_sentence_reading, row);
+            row = adder.apply(option_enable_sentence_reading_cloze, row);
             row = adder.apply(option_enable_linecount, row);
             row = adder.apply(option_append_line, row);
             row = adder.apply(option_enable_userdict, row);
@@ -224,6 +229,7 @@ public class GUIMain extends Main {
 
             pane.add(option_strip_furigana);
             pane.add(option_enable_sentence_reading);
+            pane.add(option_enable_sentence_reading_cloze);
             pane.add(option_enable_linecount);
             pane.add(option_append_line);
             pane.add(option_enable_userdict);

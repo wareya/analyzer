@@ -38,6 +38,7 @@ public class ConsoleMain extends Main {
             println(out, "\t-p: disable punctuation filter");
             println(out, "\t-k: kanji words onlyfilter");
             println(out, "\t-r: Include furigana reading with sentence");
+            println(out, "\t-rc: Also include cloze html tags to mark the keyword in the sentence");
             println(out, "\t-c: count lines and export index of the first line a term shows up in");
             println(out, "\t-a: Append original line of the first time a term shows up in");
             println(out, "\t-l: pull out spellings to additional columns (merge respellings of words)");
@@ -60,6 +61,7 @@ public class ConsoleMain extends Main {
                 if(argument.equals("-s")) skip_furigana_formatting = true;
                 if(argument.equals("-k")) filter_kanji_only = true;
                 if(argument.equals("-r")) enable_sentence_reading = true;
+                if(argument.equals("-rc")) enable_sentence_reading_cloze = true;
                 if(argument.equals("-c")) enable_linecounter = true;
                 if(argument.equals("-a")) enable_append_line = true;
                 if(argument.equals("-l")) pull_out_spellings = true;
