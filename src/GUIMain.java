@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.*;
 import java.io.*;
 import java.util.function.BiFunction;
 
@@ -15,9 +14,13 @@ public class GUIMain extends Main {
 
     static private JCheckBox option_enable_filter_dictionary;
     static private JCheckBox option_enable_filter_punctuation;
+    static private JCheckBox option_enable_filter_kanji_only;
 
     static private JCheckBox option_strip_furigana;
+    static private JCheckBox option_enable_sentence_reading;
+    static private JCheckBox option_enable_sentence_reading_cloze;
     static private JCheckBox option_enable_linecount;
+    static private JCheckBox option_append_line;
     static private JCheckBox option_enable_userdict;
     static private JCheckBox option_enable_userfilter;
     
@@ -48,18 +51,26 @@ public class GUIMain extends Main {
 
             JLabel explanation2 = new JLabel("Input must be in UTF-8.");
             JButton input = new JButton("Input");
+            JLabel sentence_index_explanation = new JLabel("Index of sentence for TSV input:");
+
             JButton write = new JButton("Output");
             JTextField field_input = new JTextField("");
+            JTextField field_sentence_index_input = new JTextField("-1");
             JTextField field_write = new JTextField("");
 
             JLabel explanation3 = new JLabel("Filters:");
             option_enable_filter_dictionary = new JCheckBox("Require term to be in dictionary", true);
             option_enable_filter_punctuation = new JCheckBox("Disallow punctuation", true);
             option_enable_userfilter = new JCheckBox("Load filters from userfilter.csv", true);
+            option_enable_filter_kanji_only = new JCheckBox("Kanji words only", false);
 
             JLabel explanation4 = new JLabel("Other options:");
             option_strip_furigana = new JCheckBox("Strip 《》 furigana (occurs before parsing) (also deletes 〈 and 〉)", false);
+            option_enable_sentence_reading = new JCheckBox("Include sentence with furigana reading", false);
+            option_enable_sentence_reading_cloze = new JCheckBox("Also include cloze html tags to mark the keyword in the sentence", false);
+            option_enable_sentence_reading_cloze.setMargin(new Insets(0,20,0,0));
             option_enable_linecount = new JCheckBox("Include index of line of first occurrence", false);
+            option_append_line = new JCheckBox("Append entire line of first occurrence", false);
             option_enable_userdict = new JCheckBox("Load additional user dictionary from userdict.csv", true);
             
             JLabel explanation5 = new JLabel("What makes a word unique:");
@@ -94,13 +105,18 @@ public class GUIMain extends Main {
             {
                 filter_dictionary_enabled = option_enable_filter_dictionary.isSelected();
                 filter_punctuation_enabled = option_enable_filter_punctuation.isSelected();
+                filter_kanji_only = option_enable_filter_kanji_only.isSelected();
 
                 skip_furigana_formatting = option_strip_furigana.isSelected();
+                enable_sentence_reading = option_enable_sentence_reading.isSelected();
+                enable_sentence_reading_cloze = option_enable_sentence_reading_cloze.isSelected();
                 enable_linecounter = option_enable_linecount.isSelected();
+                enable_append_line = option_append_line.isSelected();
                 
                 enable_userdictionary = option_enable_userdict.isSelected();
                 enable_userfilter = option_enable_userfilter.isSelected();
                 
+
                 pull_out_spellings = option_respelling_mode.getSelectedItem().equals("Pronunciation");
                 lexeme_only = option_respelling_mode.getSelectedItem().equals("Lexeme");
 
@@ -109,6 +125,7 @@ public class GUIMain extends Main {
                 {
                     try
                     {
+                        sentence_index = Integer.parseInt(field_sentence_index_input.getText());
                         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(field_write.getText()), "UTF-8"));
                         run(field_input.getText(), writer, (text, length) ->
                         {
@@ -143,6 +160,14 @@ public class GUIMain extends Main {
                     {
                         progress.setString("Error while closing output file.");
                     }
+                    catch (NumberFormatException e)
+                    {
+                        progress.setString("Invalid sentence index.");
+                    }
+                    catch (Exception e)
+                    {
+                        progress.setString(e.toString());
+                    }
                 });
                 worker.start();
             });
@@ -160,16 +185,24 @@ public class GUIMain extends Main {
 
             row = adder.apply(explanation2, row); row += 5;
             input.setBounds(5, row, 65, 20); field_input.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
+
+
+            sentence_index_explanation.setBounds(5, row, 160, 20); field_sentence_index_input.setBounds(165, row, 30, 20);   row += 25;
+
             write.setBounds(5, row, 65, 20); field_write.setBounds(75, row, pane.getWidth()-75-10, 20); row += 25;
 
-            row += 3; row = adder.apply(explanation3, row); row += 3;
+            row += 4; row = adder.apply(explanation3, row); row += 4;
             row = adder.apply(option_enable_filter_dictionary, row);
             row = adder.apply(option_enable_filter_punctuation, row);
+            row = adder.apply(option_enable_filter_kanji_only, row);
             row = adder.apply(option_enable_userfilter, row);
 
-            row += 3; row = adder.apply(explanation4, row); row += 3;
+            row += 6; row = adder.apply(explanation4, row); row += 6;
             row = adder.apply(option_strip_furigana, row);
+            row = adder.apply(option_enable_sentence_reading, row);
+            row = adder.apply(option_enable_sentence_reading_cloze, row);
             row = adder.apply(option_enable_linecount, row);
+            row = adder.apply(option_append_line, row);
             row = adder.apply(option_enable_userdict, row);
             explanation5.setBounds(5, row, 150, 20); option_respelling_mode.setBounds(160, row, 150, 20); row += 25;
             row += 5;
@@ -179,20 +212,26 @@ public class GUIMain extends Main {
 
             pane.add(explanation1);
             pane.add(explanation2);
+            pane.add(sentence_index_explanation);
             pane.add(explanation3);
             pane.add(explanation4);
 
             pane.add(input);
             pane.add(write);
             pane.add(field_input);
+            pane.add(field_sentence_index_input);
             pane.add(field_write);
 
             pane.add(option_enable_filter_dictionary);
             pane.add(option_enable_filter_punctuation);
             pane.add(option_enable_userfilter);
+            pane.add(option_enable_filter_kanji_only);
 
             pane.add(option_strip_furigana);
+            pane.add(option_enable_sentence_reading);
+            pane.add(option_enable_sentence_reading_cloze);
             pane.add(option_enable_linecount);
+            pane.add(option_append_line);
             pane.add(option_enable_userdict);
             pane.add(explanation5);
             pane.add(option_respelling_mode);

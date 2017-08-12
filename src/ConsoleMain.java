@@ -1,6 +1,8 @@
 import java.io.*;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*
  * Licensed under a public domain‐like license. See Main.java for license text.
@@ -28,12 +30,17 @@ public class ConsoleMain extends Main {
         {
             println(out, "Usage: java -jar analyzer.jar <corpus.txt> (-[fdswlpn] )*");
             println(out, "\tcorpus.txt: must be in utf-8. cannot be named \"-h\" or \"--help\".");
+            println(out, "\t-iX: index of sentence for TSV input");
             println(out, "\t-f: disable user filters (userfilters.csv)");
             println(out, "\t-d: disable user dictionary (userdict.csv)");
             println(out, "\t-s: strip 〈〉 (but not their contents) and enable 《》 furigana culling (incl. contents) (operates at the code unit level, before parsing)");
             println(out, "\t-w: disable 'only in dictionary' filter");
             println(out, "\t-p: disable punctuation filter");
+            println(out, "\t-k: kanji words onlyfilter");
+            println(out, "\t-r: Include furigana reading with sentence");
+            println(out, "\t-rc: Also include cloze html tags to mark the keyword in the sentence");
             println(out, "\t-c: count lines and export index of the first line a term shows up in");
+            println(out, "\t-a: Append original line of the first time a term shows up in");
             println(out, "\t-l: pull out spellings to additional columns (merge respellings of words)");
             println(out, "\t-x: lexmee mode (pull out spellings, pronunciations, and accents, overrides/replaces -l)");
             println(out, "Options must be stated separately (-p -d), not bundled (-pd)");
@@ -52,9 +59,19 @@ public class ConsoleMain extends Main {
                 if(argument.equals("-f")) enable_userfilter = false;
                 if(argument.equals("-d")) enable_userdictionary = false;
                 if(argument.equals("-s")) skip_furigana_formatting = true;
+                if(argument.equals("-k")) filter_kanji_only = true;
+                if(argument.equals("-r")) enable_sentence_reading = true;
+                if(argument.equals("-rc")) enable_sentence_reading_cloze = true;
                 if(argument.equals("-c")) enable_linecounter = true;
+                if(argument.equals("-a")) enable_append_line = true;
                 if(argument.equals("-l")) pull_out_spellings = true;
                 if(argument.equals("-x")) lexeme_only = true;
+                if(argument.matches("^-i\\d+$")) {
+                    Pattern pattern = Pattern.compile("^-i(\\d+)$");
+                    Matcher matcher = pattern.matcher(argument);
+                    matcher.find();
+                    sentence_index = Integer.parseInt(matcher.group(1));
+                }
             }
             try
             {
@@ -75,6 +92,8 @@ public class ConsoleMain extends Main {
                 });
             }
             catch(IOException e)
+            { /**/ }
+            catch(Exception e)
             { /**/ }
         }
         try

@@ -55,7 +55,13 @@ public class Main
     static boolean enable_linecounter = false;
     static boolean enable_userfilter = true;
     static boolean enable_userdictionary = true;
-    
+    static boolean filter_kanji_only = false;
+    static int sentence_index = -1;
+    static boolean enable_append_line = false;
+    static boolean enable_sentence_reading = false;
+    static boolean enable_sentence_reading_cloze = false;
+
+
     static boolean pull_out_spellings = false;
     static boolean lexeme_only = false;
 
@@ -130,7 +136,9 @@ public class Main
         
         // is punctuation
         if(filter_punctuation_enabled && p_m.reset(token.getSurface()).find()) return true;
-        
+
+        if(filter_kanji_only && !token.getWrittenBaseForm().matches("[\\u4e00-\\u9faf]+.*")) return true;
+
         // undesirable term
         
         if(!enable_userfilter) return false;
@@ -193,7 +201,7 @@ public class Main
     }
 
     private static InputStream userdict = null;
-    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException
+    static void run(String in_name, BufferedWriter out, BiConsumer<String, Double> update) throws IOException, Exception
     {
         if(enable_userdictionary)
         {
@@ -271,6 +279,16 @@ public class Main
 
         while ((line = readline(in, false)) != null)
         {
+            String text = line;
+            if (sentence_index > -1) {
+                String[] split = line.split("\\t");
+                if (split.length > sentence_index) {
+                    text = split[sentence_index];
+                } else {
+                    throw new Exception("Sentence index out of range");
+                }
+            }
+
             // update UI less often with very long input files
             if (line_count > 100000)
             {
@@ -284,7 +302,7 @@ public class Main
             }
             else
                 update.accept("Parsing file: " + line_index.toString() + "/" + line_count.toString(), line_index/(double)line_count);
-            List<Token> tokens = tokenizer.tokenize(line);
+            List<Token> tokens = tokenizer.tokenize(text);
             for (Token token : tokens)
             {
                 // skip undesired terms
@@ -297,11 +315,41 @@ public class Main
 
                 String[] temp = {token.getWrittenBaseForm(), token.getFormBase(), token.getPronunciationBaseForm(), token.getAccentType(), token.getLanguageType(), parts, token.getConjugationType(), token.getLemma(), token.getLemmaReadingForm()};
                 String identity = StringUtils.join(temp,"\t");
-                
+
+                int eventLineIndex = -1;
                 if(enable_linecounter)
-                    data.addEvent(identity, line_index);
-                else
-                    data.addEvent(identity, -1);
+                    eventLineIndex = line_index;
+
+                List<String> extraFieldsList = new ArrayList<String>();
+
+                if(enable_sentence_reading) {
+                    StringBuilder cloze = new StringBuilder();
+
+                    for (Token clozeToken : tokens)
+                    {
+                        StringBuilder word = new StringBuilder();
+                        boolean isCurrentToken = token.getSurface() == clozeToken.getSurface();
+                        if (enable_sentence_reading_cloze && isCurrentToken) {
+                            word.append("<span class=\"cloze\">");
+                        }
+                        word.append(Utils.toFurigana(clozeToken));
+                        if (enable_sentence_reading_cloze && isCurrentToken) {
+                            word.append("</span>");
+                        }
+
+                        cloze.append(word);
+                    }
+                    extraFieldsList.add(cloze.toString());
+                }
+
+                if(enable_append_line) {
+                    extraFieldsList.add(line);
+                }
+
+                StringJoiner extraFields = new StringJoiner("\t");
+                extraFieldsList.forEach(extraField -> extraFields.add(extraField));
+
+                data.addEvent(identity, eventLineIndex, extraFields.toString());
             }
             line_index++;
         }
