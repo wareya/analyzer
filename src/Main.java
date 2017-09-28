@@ -67,6 +67,9 @@ public class Main
 
     // to force utf-8 output on windows
     static BufferedWriter out;
+    
+    static int deduplicate_longer_than = -1;
+    static HashSet<String> seen_lines = new HashSet<>();
 
     private static Pattern p_re = Pattern.compile("^[\\p{Punct} 　─]*$", Pattern.UNICODE_CHARACTER_CLASS);
     private static Matcher p_m = p_re.matcher("");
@@ -306,6 +309,15 @@ public class Main
             }
             else
                 update.accept("Parsing file: " + line_index.toString() + "/" + line_count.toString(), line_index/(double)line_count);
+            
+            if(text.length() > deduplicate_longer_than && deduplicate_longer_than > 0)
+            {
+                if(seen_lines.contains(text))
+                    continue;
+                else
+                    seen_lines.add(text);
+            }
+            
             List<Token> tokens = tokenizer.tokenize(text);
             for (Token token : tokens)
             {

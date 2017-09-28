@@ -43,6 +43,7 @@ public class ConsoleMain extends Main {
             println(out, "\t-r: Include furigana reading with sentence");
             println(out, "\t-rc: Also include cloze html tags to mark the keyword in the sentence");
             println(out, "\t-i<number>: index of sentence for TSV input, no space between -i and number");
+            println(out, "\t-m<number>: deduplicate lines longer than this (negative to disable) (disabled by default)");
             println(out, "Options must be stated separately (-p -d), not bundled (-pd)");
             println(out, "");
             println(out, "Output goes to standard output. Use > to output to a file.");
@@ -72,6 +73,13 @@ public class ConsoleMain extends Main {
                     Matcher matcher = pattern.matcher(argument);
                     if(matcher.find())
                         sentence_index = Integer.parseInt(matcher.group(1));
+                }
+                if(argument.matches("^-m\\d+$"))
+                {
+                    Pattern pattern = Pattern.compile("^-m(\\d+)$");
+                    Matcher matcher = pattern.matcher(argument);
+                    if(matcher.find())
+                        deduplicate_longer_than = Integer.parseInt(matcher.group(1));
                 }
             }
             try
